@@ -8,7 +8,7 @@ class CalculatorTool:
         self.calculator_tool_list = self._setup_tools()
 
     def _setup_tools(self) -> List:
-        """Setup all tools for the calculator tool"""
+        """Setup all tools for the calculator tool working."""
         @tool
         def estimate_total_hotel_cost(price_per_night:str, total_days:float) -> float:
             """Calculate total hotel cost"""
@@ -25,3 +25,5 @@ class CalculatorTool:
             return self.calculator.calculate_daily_budget(total_cost, days)
         
         return [estimate_total_hotel_cost, calculate_total_expense, calculate_daily_expense_budget]
+
+
