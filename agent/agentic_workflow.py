@@ -5,10 +5,10 @@ from langgraph.graph import StateGraph, MessagesState,END, START
 from langgraph.prebuilt import ToolNode, tools_condition
 
 # Importing tools ---> 
-# from tools.weather_info_tool import WeatherinfoTool 
-# from tools.place_search_tool import PlaceSearchTool
-# from tools.expense_calculator_tool import CalculatorTool
-# from tools.currency_conversion_tool import CurrencyConverterTool 
+from tools.weather_info_tool import WeatherinfoTool 
+from tools.place_search_tool import PlaceSearchTool
+from tools.expense_calculator_tool import CalculatorTool
+from tools.currency_conversion_tool import CurrencyConverterTool 
 
 
 class GraphBuilder():
@@ -33,6 +33,7 @@ class GraphBuilder():
 
     def build_graph(self):
         graph_builder = StateGraph(MessagesState)
+        graph_builder.add_node("agent",self.agent_function)
         graph_builder.add_note("tools",ToolNode(tool=self.tools))
         graph_builder.add_edge(START,"agent")
         graph_builder.add_conditional_edges("agent",tools_condition)
