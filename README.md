@@ -70,7 +70,7 @@ How the project works (high level)
 Contact & License
 -----------------
 
-If you need help, open an issue then contact the project owner. This project is licensed under the MIT License — see the `LICENSE` file for details and the full text.
+If you need help, open an issue then contact the project owner. This project is licensed under the MIT License — see the `LICENSE.md` file for details and the full text.
 
 ---
 
