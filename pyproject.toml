@@ -1,1 +1,7 @@
-
+[project]
+name = "ai-trip-planner"
+version = "0.1.0"
+description = "It is a AI Agent Travel Planner that actually checks for stay places such as hotels, places to travel, adventure activity spots etc and calculates one of the best Travel Plan according to the user needs."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
