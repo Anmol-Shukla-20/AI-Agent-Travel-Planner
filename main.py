@@ -96,6 +96,23 @@ async def query_travel_agent(query:QueryRequest):
                 pass
             return JSONResponse(status_code=500, content={"error": "invoke_failed", "trace": trace})
 
+        # Robust extraction of text from common response shapes
+        final_output = None
+        ai_last_message = None
+        if isinstance(output, dict):
+            if "messages" in output and output["messages"]:
+                ai_last_message = output["messages"][-1]
+                final_output = getattr(ai_last_message, "content", None) or str(ai_last_message)
+            elif "content" in output:
+                final_output = output["content"]
+            else:
+                final_output = str(output)
+        elif hasattr(output, "content"):
+            ai_last_message = output
+            final_output = output.content
+        else:
+            final_output = str(output)
+            
         # If result is dict with messages:
         if isinstance(output, dict) and "messages" in output:
             final_output = output["messages"][-1].content  # Last AI response
