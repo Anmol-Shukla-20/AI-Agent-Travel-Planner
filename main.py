@@ -8,6 +8,10 @@ import datetime
 from dotenv import load_dotenv
 from pydantic import BaseModel
 load_dotenv()
+from langchain_core.messages import HumanMessage, AIMessage
+import uuid
+from typing import Optional
+from utils.json_store import JsonStore
 
 app = FastAPI()
 
@@ -112,13 +116,3 @@ async def query_travel_agent(query:QueryRequest):
             final_output = output.content
         else:
             final_output = str(output)
-            
-        # If result is dict with messages:
-        if isinstance(output, dict) and "messages" in output:
-            final_output = output["messages"][-1].content  # Last AI response
-        else:
-            final_output = str(output)
-        
-        return {"answer": final_output}
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
