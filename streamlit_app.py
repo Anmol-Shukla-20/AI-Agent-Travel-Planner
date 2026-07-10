@@ -23,7 +23,7 @@ import datetime
 import requests
 import streamlit.components.v1 as components
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://travel-planner-ai-agent-backend.onrender.com/"
 
 load_dotenv()
 
