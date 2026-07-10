@@ -134,6 +134,10 @@ def make_chat_title(message_text: str) -> str:
     text = message_text.strip()
     if not text:
         return "New Chat"
+    try:
+        st.rerun()
+    except Exception:
+        st.experimental_rerun()
 
     text = re.sub(r"[^A-Za-z0-9 ]+", " ", text)
     text = re.sub(r"\b(plan|please|a|an|the|to|for|in|make|me|help|need|travel|trip|book|plan)\b", " ", text, flags=re.IGNORECASE)
@@ -412,7 +416,7 @@ if st.session_state.user is None:
 if st.session_state.user is None and not st.session_state.local_storage_restore_attempted:
     st.session_state.local_storage_restore_attempted = True
     components.html(
-        "<script>const stored = window.localStorage.getItem('agentic_user_id'); if (stored) { const u = new URL(window.location); u.searchParams.set('user_id', stored); window.location.replace(u.toString()); }</script>",
+        "<script>const stored = window.localStorage.getItem('agentic_user_id'); if (stored) { const u = new URL(window.parent.location.href); u.searchParams.set('user_id', stored); window.parent.location.replace(u.toString()); }</script>",
         height=0,
     )
 if st.session_state.user is not None and (get_param_from_query('code') or get_param_from_query('state')):
@@ -559,12 +563,15 @@ with main_col:
         .stApp, .stApp > header {
             background-color: #f7fafc !important;
         }
+        
         [data-testid="stSidebar"] {
             background-color: #edf2f7 !important;
         }
+        
         h1, h2, h3, h4, h5, h6, p, span, div, label {
             color: #2d3748 !important;
         }
+        
         .stTextInput > div > div > input, .stTextArea > div > textarea {
             background-color: #ffffff !important;
             color: #2d3748 !important;
@@ -572,20 +579,33 @@ with main_col:
             border: 1px solid #cbd5e0 !important;
             border-radius: 8px !important;
         }
+        
+        /* Fix Disabled Input */
+        .stTextInput > div > div > input:disabled, .stTextArea > div > textarea:disabled {
+            -webkit-text-fill-color: #2d3748 !important;
+            opacity: 1 !important;
+        }
+
         /* Selectbox / Dropdown */
         [data-baseweb="select"] > div {
             background-color: #ffffff !important;
             color: #2d3748 !important;
             border: 1px solid #cbd5e0 !important;
         }
-        [data-baseweb="menu"], [data-baseweb="popover"] {
+        [data-baseweb="menu"], [data-baseweb="popover"],  [data-testid="stVirtualDropdown"] {
             background-color: #ffffff !important;
         }
         li[role="option"] {
             background-color: #ffffff !important;
             color: #2d3748 !important;
         }
-        li[role="option"]:hover {
+
+        [data-baseweb="popover"] *, [data-testid="stVirtualDropdown"] * {
+            background-color: transparent !important;
+            color: #2d3748 !important;
+        }
+        
+        li[role="option"]:hover,  [data-testid="stVirtualDropdown"] li:hover{
             background-color: #edf2f7 !important;
         }
         /* Buttons */
@@ -752,7 +772,7 @@ with right_col:
     st.markdown("---")
     st.markdown("### Tips")
     st.markdown(
-        "<div style='padding:12px;border-radius:12px;background:#1f2937;color:#e5e7eb;line-height:1.6;'>"
+        "<div style='padding:12px;border-radius:12px;background:var(--secondary-background-color);color:var(--text-color);border:1px solid var(--border-color);line-height:1.6;'>"
         "<p style='margin:0 0 8px 0;font-weight:600;'>Try these prompts:</p>"
         "<ul style='margin:0;padding-left:18px;'>"
         "<li>Start with: 'Plan a 5-day trip to Goa'</li>"
