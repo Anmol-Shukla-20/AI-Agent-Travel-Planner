@@ -82,3 +82,18 @@ class HuggingFaceLLM:
         if response.status_code != 200:
             raise RuntimeError(f"Hugging Face request failed {response.status_code}: {response.text}")
 
+        try:
+            data = response.json()
+        except ValueError:
+            raise RuntimeError(f"Hugging Face returned non-JSON response: {response.text}")
+
+        if isinstance(data, dict) and data.get("error"):
+            raise RuntimeError(f"Hugging Face error: {data['error']}")
+        if isinstance(data, list) and data:
+            first = data[0]
+            if isinstance(first, dict) and "generated_text" in first:
+                return first["generated_text"]
+            if isinstance(first, str):
+                return first
+
+        raise RuntimeError(f"Unexpected Hugging Face response format: {data}")
