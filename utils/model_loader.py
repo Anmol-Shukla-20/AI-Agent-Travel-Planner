@@ -61,3 +61,24 @@ class HuggingFaceLLM:
             },
         }
 
+        try:
+            if parsed_url.hostname == "api-inference.huggingface.co":
+                # quick DNS check for clearer error messaging
+                try:
+                    socket.gethostbyname(parsed_url.hostname)
+                except socket.gaierror as e:
+                    raise RuntimeError(
+                        f"DNS resolution failed for {parsed_url.hostname}: {e}. "
+                        "Ensure your machine has internet access and DNS can resolve the Hugging Face host, or set HUGGINGFACE_API_URL to a reachable endpoint."
+                    )
+
+            response = requests.post(url, headers=headers, json=payload, timeout=120)
+        except RequestException as e:
+            raise RuntimeError(
+                f"Network request to Hugging Face failed: {e}. "
+                "Check your internet connection, proxy settings, or firewall that may block the Hugging Face endpoint."
+            )
+
+        if response.status_code != 200:
+            raise RuntimeError(f"Hugging Face request failed {response.status_code}: {response.text}")
+
