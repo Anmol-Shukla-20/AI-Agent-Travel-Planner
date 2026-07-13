@@ -97,3 +97,71 @@ class HuggingFaceLLM:
                 return first
 
         raise RuntimeError(f"Unexpected Hugging Face response format: {data}")
+
+class ConfigLoader:
+    def __init__(self):
+        print(f"Loaded config.....")
+        self.config = load_config()
+    
+    def __getitem__(self, key):
+        return self.config[key]
+
+class ModelLoader(BaseModel):
+    model_choice: str = "groq"
+    config: Optional[ConfigLoader] = Field(default=None, exclude=True)
+
+    def model_post_init(self, __context: Any) -> None:
+        self.config = ConfigLoader()
+    
+    class Config:
+        arbitrary_types_allowed = True
+    
+    def load_llm(self):
+        """
+        Load and return the LLM model.
+        """
+        # ensure environment variables from .env are loaded
+        try:
+            load_dotenv()
+        except Exception:
+            pass
+
+        raw_choice = self.model_choice.strip()
+        if "/" in raw_choice:
+            provider, model_name = raw_choice.split("/", 1)
+        else:
+            provider = raw_choice
+            try:
+                model_name = self.config["llm"][provider]["model_name"]
+            except KeyError:
+                model_name = raw_choice
+
+        logging.getLogger(__name__).info("LLM loading...")
+        logging.getLogger(__name__).info(f"Loading model: {model_name} from provider: {provider}")
+        
+        if provider == "groq":
+            print(f"Loading LLM from Groq for model {model_name}..............")
+            groq_api_key = os.getenv("GROQ_API_KEY")
+            if not groq_api_key:
+                raise RuntimeError(
+                    "GROQ_API_KEY is not set. Set the GROQ_API_KEY environment variable or add it to a .env file."
+                )
+            masked = groq_api_key[:4] + "..." if len(groq_api_key) > 8 else "(set)"
+            logging.getLogger(__name__).info(f"Using GROQ provider, GROQ_API_KEY present: {masked}")
+            # compound-beta must be passed as the full string to ChatGroq
+            llm = ChatGroq(model=model_name, api_key=groq_api_key)
+            
+        elif provider == "openai":
+            print(f"Loading LLM from OpenAI for model {model_name}..............")
+            openai_api_key = os.getenv("OPENAI_API_KEY")
+            if not openai_api_key:
+                print("OPENAI_API_KEY is not set. Routing through Groq as requested.")
+                groq_api_key = os.getenv("GROQ_API_KEY")
+                if not groq_api_key:
+                    raise RuntimeError("Both OPENAI_API_KEY and GROQ_API_KEY are missing.")
+                # Pass the exact raw string (e.g. openai/gpt-oss-120b) to Groq
+                llm = ChatGroq(model=raw_choice, api_key=groq_api_key)
+            else:
+                masked = openai_api_key[:4] + "..." if len(openai_api_key) > 8 else "(set)"
+                logging.getLogger(__name__).info(f"Using OpenAI provider, OPENAI_API_KEY present: {masked}")
+                llm = ChatOpenAI(model_name=model_name, api_key=openai_api_key)
