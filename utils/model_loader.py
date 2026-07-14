@@ -165,3 +165,20 @@ class ModelLoader(BaseModel):
                 masked = openai_api_key[:4] + "..." if len(openai_api_key) > 8 else "(set)"
                 logging.getLogger(__name__).info(f"Using OpenAI provider, OPENAI_API_KEY present: {masked}")
                 llm = ChatOpenAI(model_name=model_name, api_key=openai_api_key)
+
+        elif provider == "huggingface":
+            print(f"Loading LLM from Hugging Face for model {model_name}..............")
+            hf_api_key = os.getenv("HUGGINGFACE_API_KEY") or os.getenv("HF_TOKEN")
+            if not hf_api_key:
+                raise RuntimeError(
+                    "HUGGINGFACE_API_KEY or HF_TOKEN is not set. Set the Hugging Face key in your environment or .env file."
+                )
+            logging.getLogger(__name__).info("Using Hugging Face provider, API key present")
+            hf_llm = HuggingFaceLLM(model=model_name, api_key=hf_api_key)
+            llm = self._validate_hf_connectivity(hf_llm)
+        else:
+            raise RuntimeError(
+                f"Unknown model provider '{provider}'. Supported values are groq, openai, anthropic, huggingface."
+            )
+
+        return llm
