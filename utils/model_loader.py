@@ -182,3 +182,30 @@ class ModelLoader(BaseModel):
             )
 
         return llm
+
+    def _validate_hf_connectivity(self, hf_llm: HuggingFaceLLM):
+        # Perform a short connectivity check to ensure HF API is reachable.
+        try:
+            result = hf_llm._call_huggingface("Connectivity check")
+            if isinstance(result, str) and result.startswith("Error:"):
+                # If HF is unreachable, fall back to groq.
+                print(f"Hugging Face connectivity failed: {result}")
+                groq_api_key = os.getenv("GROQ_API_KEY")
+                if not groq_api_key:
+                    raise RuntimeError(
+                        "Hugging Face is unavailable and GROQ_API_KEY is not set. Set a valid GROQ_API_KEY."
+                    )
+                model_name = self.config["llm"]["groq"]["model_name"]
+                print("Falling back to Groq due to Hugging Face connectivity failure.")
+                self.model_choice = "groq"
+                return ChatGroq(model=model_name, api_key=groq_api_key)
+        except Exception as e:
+            print(f"Hugging Face connectivity validation exception: {e}")
+            groq_api_key = os.getenv("GROQ_API_KEY")
+            if not groq_api_key:
+                raise
+            model_name = self.config["llm"]["groq"]["model_name"]
+            self.model_choice = "groq"
+            return ChatGroq(model=model_name, api_key=groq_api_key)
+
+        return hf_llm
