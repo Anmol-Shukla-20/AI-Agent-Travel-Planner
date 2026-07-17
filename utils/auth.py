@@ -13,3 +13,17 @@ CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8501/")
 
 SCOPES = ["openid", "email", "profile"]
+
+def build_google_oauth_url(state: str) -> str:
+    if not CLIENT_ID or not CLIENT_SECRET:
+        raise RuntimeError("Google OAuth credentials are required in the .env file.")
+    params = {
+        "client_id": CLIENT_ID,
+        "redirect_uri": REDIRECT_URI,
+        "response_type": "code",
+        "scope": " ".join(SCOPES),
+        "access_type": "offline",
+        "prompt": "consent",
+        "state": state,
+    }
+    return f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
