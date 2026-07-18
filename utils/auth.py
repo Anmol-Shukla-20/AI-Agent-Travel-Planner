@@ -27,3 +27,16 @@ def build_google_oauth_url(state: str) -> str:
         "state": state,
     }
     return f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
+
+
+def exchange_code_for_token(code: str) -> dict:
+    data = {
+        "code": code,
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "redirect_uri": REDIRECT_URI,
+        "grant_type": "authorization_code",
+    }
+    resp = requests.post(GOOGLE_TOKEN_URL, data=data, timeout=20)
+    resp.raise_for_status()
+    return resp.json()
