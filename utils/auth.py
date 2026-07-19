@@ -40,3 +40,10 @@ def exchange_code_for_token(code: str) -> dict:
     resp = requests.post(GOOGLE_TOKEN_URL, data=data, timeout=20)
     resp.raise_for_status()
     return resp.json()
+
+def fetch_google_userinfo(access_token: str) -> dict:
+    headers = {"Authorization": f"Bearer {access_token}"}
+    resp = requests.get(GOOGLE_USERINFO_URL, headers=headers, timeout=20)
+    resp.raise_for_status()
+    return resp.json()
+    
