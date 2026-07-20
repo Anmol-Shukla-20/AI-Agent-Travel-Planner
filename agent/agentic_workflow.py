@@ -23,15 +23,23 @@ class GraphBuilder():
         self.calculator_tools = CalculatorTool()
         self.currency_converter_tool = CurrencyConverterTool()
         
-
+        # Collect all tool callables from each tool wrapper
         self.tools.extend([* self.weather_tools.waether_tool_list,
                            * self_place_search_tools.place_search_tool_list,
                            * self.calulator_tools.calulator_tool_list,
-                           * self.currency_converter_tools.currency_converter_tool_list])
-        
+                           * self.currency_converter_tools.currency_converter_tool_list
+        ])
 
-        self.llm_with_tools = self.llm.bind_tools(tools=self.tools)
+        # Models that do NOT support tool calling — use raw LLM invocation for these
+        _NO_TOOL_MODELS = {"compound-beta", "compound-beta-mini"}
+        if model_choice.split("/")[-1] in _NO_TOOL_MODELS:
+            # compound-beta doesn't accept bind_tools; call it directly
+            self.llm_with_tools = self.llm
+        else:
+            self.llm_with_tools = self.llm.bind_tools(tools=self.tools)
+        
         self.graph = None
+        
         self.system_prompt = SYSTEM_PROMPT
 
     def agent_function(self):
