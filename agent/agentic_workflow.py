@@ -39,16 +39,24 @@ class GraphBuilder():
             self.llm_with_tools = self.llm.bind_tools(tools=self.tools)
         
         self.graph = None
-        
         self.system_prompt = SYSTEM_PROMPT
 
-    def agent_function(self):
-        """Main agent function"""
-        user_question = state["messages"]
-        input_question = [self.system_prompt] + user_question
-        response = self.llm_with_tools.invoke(input_question)
-        return {"message"}
+    def agent_function(self,state):
+            """Main agent function: forward the incoming messages to the LLM (with tools)
+            and return the LLM's response so the caller can extract the generated plan.
+            """
+            try:
+                user_messages = None
+                if isinstance(state, dict):
+                    user_messages = state.get("messages") or state.get("messages", [])
+                elif hasattr(state, "messages"):
+                    user_messages = getattr(state, "messages")
+                if user_messages is None:
+                    user_messages = []
 
+                input_question = [self.system_prompt] + list(user_messages)
+                result = self.llm_with_tools.invoke(input_question)
+       
     def build_graph(self):
         graph_builder = StateGraph(MessagesState)
         graph_builder.add_node("agent",self.agent_function)
