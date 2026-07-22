@@ -56,6 +56,20 @@ class GraphBuilder():
 
                 input_question = [self.system_prompt] + list(user_messages)
                 result = self.llm_with_tools.invoke(input_question)
+                
+                text = None
+                if isinstance(result, dict):
+                    if "messages" in result and result["messages"]:
+                        last = result["messages"][-1]
+                        text = getattr(last, "content", None) or str(last)
+                    elif "content" in result:
+                        text = result["content"]
+                    else:
+                        text = str(result)
+                elif hasattr(result, "content"):
+                    text = result.content
+                else:
+                    text = str(result)
        
     def build_graph(self):
         graph_builder = StateGraph(MessagesState)
