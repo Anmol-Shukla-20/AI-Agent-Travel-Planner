@@ -70,6 +70,23 @@ class GraphBuilder():
                     text = result.content
                 else:
                     text = str(result)
+
+                # Return a dict with `messages` containing an AIMessage instance so downstream
+                # ToolNode finds an AIMessage as the last message. Preserve any tool_calls
+                ai_msg = AIMessage(content=text)
+                # If the raw result included tool_calls, attach them to the AIMessage
+                try:
+                    setattr(ai_msg, "tool_calls", getattr(result, "tool_calls", []))
+                except Exception:
+                    pass
+                return {"messages": [ai_msg]}
+            except Exception as e:
+                ai_msg = AIMessage(content=f"Error: {e}")
+                try:
+                    setattr(ai_msg, "tool_calls", [])
+                except Exception:
+                    pass
+                return {"messages": [ai_msg]}
        
     def build_graph(self):
         graph_builder = StateGraph(MessagesState)
